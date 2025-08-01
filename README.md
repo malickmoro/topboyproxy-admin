@@ -2,200 +2,212 @@
 
 A secure React-based admin dashboard for a Proxy Selling platform built with Next.js, TypeScript, and Tailwind CSS.
 
-## 🚀 Features
+## 🌟 Features
 
-### 🔐 Authentication
-- JWT-based login system
-- Protected routes with automatic redirect
-- Secure token storage in localStorage
-- Automatic token refresh and error handling
-
-### 📈 Sales Dashboard
-- Real-time sales data visualization
-- Filterable sales table with date range and category filters
-- Export functionality (CSV format)
-- Statistics cards showing total sales and category breakdowns
-
-### 📤 Code Upload
-- Drag & drop file upload support
-- Multiple file format support (CSV, Excel, Text)
-- File validation (type, size limits)
-- Upload progress tracking
-- Detailed upload results (uploaded, duplicates, blank lines)
-
-### 💰 Price Management
-- Inline price editing for categories
-- Real-time price updates
-- Keyboard shortcuts (Enter to save, Escape to cancel)
-- Success/error feedback
-
-### 🎨 UI/UX
-- Modern, responsive design with Tailwind CSS
-- Mobile-friendly sidebar navigation
-- Loading states and error handling
-- Beautiful icons with Lucide React
-- Form validation with React Hook Form + Zod
+- **🔐 Secure Authentication**: JWT-based login system with protected routes
+- **📊 Sales Dashboard**: Monitor sales data with filtering and export capabilities
+- **📤 Code Upload**: Upload proxy codes from CSV, Excel, or text files
+- **💰 Price Management**: Update proxy category prices with inline editing
+- **📋 Code Management**: View and manage uploaded proxy codes
+- **🌙 Dark Mode**: Automatic theme detection with manual toggle
+- **📱 Responsive Design**: Works perfectly on desktop, tablet, and mobile
+- **🎨 Modern UI**: Beautiful interface with Tailwind CSS and custom components
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 14, React 18, TypeScript
-- **Styling**: Tailwind CSS
-- **HTTP Client**: Axios
-- **Forms**: React Hook Form + Zod validation
+- **Frontend**: Next.js 14, TypeScript, React 18
+- **Styling**: Tailwind CSS, PostCSS
+- **HTTP Client**: Axios with interceptors
+- **Authentication**: JWT tokens with localStorage
+- **Forms**: React Hook Form with Zod validation
 - **Icons**: Lucide React
-- **State Management**: React Context + Hooks
+- **Deployment**: Vercel-ready
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+- Spring Boot backend running (see backend setup)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd TopBoy
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   # Create .env.local file
+   cp .env.example .env.local
+   ```
+   
+   Update `.env.local` with your API URL:
+   ```env
+   # Development
+   NEXT_PUBLIC_API_URL=http://localhost:8080
+   
+   # Production (update this for your backend)
+   # NEXT_PUBLIC_API_URL=https://your-backend-domain.com
+   ```
+
+4. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## 🔧 Environment Variables
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `NEXT_PUBLIC_API_URL` | Backend API base URL | `http://localhost:8080` | Yes |
+
+### Environment Setup Examples
+
+**Development:**
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080
+```
+
+**Staging:**
+```env
+NEXT_PUBLIC_API_URL=https://staging-api.yourdomain.com
+```
+
+**Production:**
+```env
+NEXT_PUBLIC_API_URL=https://api.yourdomain.com
+```
 
 ## 📁 Project Structure
 
 ```
 src/
-├── app/                    # Next.js app directory
-│   ├── dashboard/         # Sales dashboard page
-│   ├── login/            # Login page
-│   ├── prices/           # Price management page
-│   ├── upload/           # Code upload page
-│   ├── globals.css       # Global styles
-│   ├── layout.tsx        # Root layout
-│   └── page.tsx          # Home page (redirects)
-├── components/           # Reusable components
-│   ├── Layout.tsx        # Main layout with sidebar
-│   ├── ProtectedRoute.tsx # Auth protection wrapper
-│   └── Sidebar.tsx       # Navigation sidebar
-├── hooks/                # Custom React hooks
-│   └── useAuth.ts        # Authentication context
-├── lib/                  # Utility libraries
-│   └── api.ts           # API client with axios
-└── types/               # TypeScript type definitions
-    └── index.ts         # Application types
+├── app/                    # Next.js App Router pages
+│   ├── dashboard/         # Sales dashboard
+│   ├── codes/            # Code management
+│   ├── upload/           # File upload
+│   ├── prices/           # Price management
+│   └── login/            # Authentication
+├── components/           # Reusable UI components
+│   ├── CustomDropdown.tsx
+│   ├── Layout.tsx
+│   └── ProtectedRoute.tsx
+├── hooks/               # Custom React hooks
+│   ├── useAuth.tsx
+│   └── useTheme.tsx
+├── lib/                 # Utilities and configurations
+│   ├── api.ts           # API client
+│   ├── categoryUtils.ts # Category conversion utilities
+│   └── types.ts         # TypeScript type definitions
+└── types/               # Shared type definitions
 ```
 
-## 🚀 Getting Started
+## 🔌 API Integration
 
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
+The dashboard integrates with a Spring Boot backend. Required endpoints:
 
-### Installation
+### Authentication
+- `POST /admin/login` - Admin login
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd TopBoy
-```
+### Sales Management
+- `GET /admin/sales` - Get sales data (optional)
 
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Set up environment variables:
-```bash
-# Create .env.local file
-NEXT_PUBLIC_API_URL=http://localhost:8080
-```
-
-4. Run the development server:
-```bash
-npm run dev
-```
-
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Create a `.env.local` file in the root directory:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8080
-```
-
-### API Endpoints
-
-The application expects the following Spring Boot backend endpoints:
-
-#### Authentication
-- `POST /api/auth/login` - Admin login
-
-#### Sales
-- `GET /api/admin/sales` - Get sales data with optional filters
-
-#### Upload
-- `POST /api/admin/upload` - Upload proxy codes
-
-#### Prices
-- `GET /api/admin/prices` - Get category prices
-- `PUT /api/admin/prices` - Update category price
-
-## 🔐 Security Features
-
-- JWT token authentication
-- Automatic token inclusion in API requests
-- Route protection on frontend
-- Automatic logout on 401 responses
-- Secure token storage
-
-## 📱 Responsive Design
-
-The dashboard is fully responsive and works on:
-- Desktop (1024px+)
-- Tablet (768px - 1023px)
-- Mobile (< 768px)
-
-## 🎯 Key Features
-
-### Dashboard
-- Sales statistics with visual indicators
-- Filterable data table
-- Export functionality
-- Real-time data updates
-
-### Upload System
-- Drag & drop interface
-- File type validation
-- Progress tracking
-- Detailed upload results
+### Code Management
+- `GET /admin/codes` - Get uploaded codes
+- `POST /admin/upload` - Upload codes file
+- `GET /admin/categories` - Get available categories
 
 ### Price Management
-- Inline editing
-- Keyboard shortcuts
-- Real-time updates
-- Validation feedback
+- `GET /admin/prices` - Get current prices
+- `PUT /admin/price` - Update price
+
+## 🎨 Customization
+
+### Styling
+- **Colors**: Update `tailwind.config.js` for brand colors
+- **Components**: Modify components in `src/components/`
+- **Dark Mode**: Customize dark mode styles in `src/app/globals.css`
+
+### Features
+- **Authentication**: Modify `src/hooks/useAuth.tsx`
+- **API Client**: Update `src/lib/api.ts` for new endpoints
+- **Types**: Add new types in `src/types/`
 
 ## 🚀 Deployment
 
-### Build for Production
-```bash
-npm run build
-npm start
-```
+### Vercel Deployment
 
-### Environment Setup
-Ensure your production environment has:
-- `NEXT_PUBLIC_API_URL` pointing to your Spring Boot backend
-- HTTPS enabled for security
-- Proper CORS configuration on backend
+1. **Connect your repository** to Vercel
+2. **Set environment variables** in Vercel dashboard:
+   - `NEXT_PUBLIC_API_URL`: Your production backend URL
+3. **Deploy** - Vercel will automatically build and deploy
+
+### Environment Variables in Vercel
+
+1. Go to your Vercel project dashboard
+2. Navigate to **Settings** → **Environment Variables**
+3. Add:
+   - **Name**: `NEXT_PUBLIC_API_URL`
+   - **Value**: `https://your-production-backend.com`
+   - **Environment**: Production (and Preview if needed)
+
+### Other Platforms
+
+For other deployment platforms, set the `NEXT_PUBLIC_API_URL` environment variable to point to your backend API.
+
+## 🔒 Security Features
+
+- **JWT Authentication**: Secure token-based authentication
+- **Protected Routes**: Client-side route protection
+- **Token Interceptors**: Automatic token inclusion in requests
+- **401 Handling**: Automatic logout on authentication failure
+- **Input Validation**: Form validation with Zod schemas
+
+## 📱 Responsive Design
+
+- **Mobile First**: Optimized for mobile devices
+- **Tablet Support**: Responsive layouts for tablets
+- **Desktop**: Full-featured desktop experience
+- **Touch Friendly**: Large touch targets for mobile
+
+## 🌙 Dark Mode
+
+- **Automatic Detection**: Detects system theme preference
+- **Manual Toggle**: Moon/sun button for manual switching
+- **Persistence**: Remembers user's theme choice
+- **Smooth Transitions**: Animated theme switching
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the ISC License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
 For support and questions:
+- Create an issue in the repository
+- Contact the development team
 - Check the documentation
-- Review the code comments
-- Open an issue on GitHub
 
 ---
 
-Built with ❤️ using Next.js, TypeScript, and Tailwind CSS # topboyproxy-admin
+**Built with ❤️ for TopBoy Proxy Platform**

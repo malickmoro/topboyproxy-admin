@@ -1,7 +1,7 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { LoginRequest, LoginResponse, Sale, ProxyPriceConfig, UploadResult, ApiResponse } from '@/types';
+import axios, { AxiosResponse } from 'axios';
+import { LoginRequest, LoginResponse, Sale, ProxyPriceConfig, UploadResult } from '@/types';
 
-// Add new type for uploaded codes
+// Add UploadedCode interface here since it's not in types
 export interface UploadedCode {
   id: number;
   code: string;
@@ -11,25 +11,25 @@ export interface UploadedCode {
   used: boolean;
 }
 
+// Get API URL from environment variables
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
 class ApiClient {
-  private client: AxiosInstance;
+  private client;
 
   constructor() {
     this.client = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      baseURL: API_BASE_URL,
+      timeout: 10000,
     });
 
-    // Add request interceptor to include JWT token
+    // Request interceptor to add JWT token
     this.client.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('admin_token');
+        const token = localStorage.getItem('token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
-        console.log('API Request:', config.method?.toUpperCase(), config.url, config.data || config.params);
         return config;
       },
       (error) => {
@@ -37,17 +37,14 @@ class ApiClient {
       }
     );
 
-    // Add response interceptor to handle auth errors
+    // Response interceptor to handle 401 errors
     this.client.interceptors.response.use(
       (response) => {
-        console.log('API Response:', response.status, response.config.url, response.data);
         return response;
       },
       (error) => {
-        console.error('API Error:', error.response?.status, error.config?.url, error.response?.data);
         if (error.response?.status === 401) {
-          localStorage.removeItem('admin_token');
-          localStorage.removeItem('admin_user');
+          localStorage.removeItem('token');
           window.location.href = '/login';
         }
         return Promise.reject(error);
@@ -55,30 +52,56 @@ class ApiClient {
     );
   }
 
-  // Test backend connectivity
+  // Test connection method
   async testConnection(): Promise<boolean> {
     try {
-      console.log('Testing backend connection...');
-      const response = await this.client.get('/admin/prices');
-      console.log('Backend connection successful:', response.status);
+      await this.client.get('/admin/prices');
       return true;
     } catch (error) {
-      console.error('Backend connection failed:', error);
+      console.error('Backend connection test failed:', error);
       return false;
     }
   }
 
   // Auth endpoints
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response: AxiosResponse<LoginResponse> = await this.client.post('/admin/login', credentials);
-    return response.data;
+    try {
+      console.log('Attempting login to:', `${API_BASE_URL}/admin/login`);
+      const response: AxiosResponse<LoginResponse> = await this.client.post('/admin/login', credentials);
+      console.log('Login response received:', response.data);
+      
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
   }
 
-  // Sales endpoints - Note: This endpoint doesn't exist in your backend yet
+  // Sales endpoints
   async getSales(filters?: { startDate?: string; endDate?: string; category?: string }): Promise<Sale[]> {
-    console.warn('Sales endpoint not implemented yet. Please add /admin/sales endpoint to your backend.');
-    // Return empty array since this endpoint doesn't exist
-    return [];
+    try {
+      console.log('Fetching sales with filters:', filters);
+      const params = new URLSearchParams();
+      if (filters?.startDate) params.append('startDate', filters.startDate);
+      if (filters?.endDate) params.append('endDate', filters.endDate);
+      if (filters?.category) params.append('category', filters.category);
+      
+      const response: AxiosResponse<Sale[]> = await this.client.get(`/admin/sales?${params.toString()}`);
+      console.log('Sales data received:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to fetch sales:', error);
+      // Return empty array if endpoint doesn't exist (not implemented in backend)
+      if (error.response?.status === 404) {
+        console.warn('Sales endpoint not implemented yet. Please add /admin/sales endpoint to your backend.');
+        return [];
+      }
+      throw error;
+    }
   }
 
   // Codes endpoints
@@ -113,36 +136,52 @@ class ApiClient {
 
   // Upload endpoints
   async uploadCodes(file: File, category: 'FIFTY' | 'HUNDRED'): Promise<UploadResult> {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response: AxiosResponse<UploadResult> = await this.client.post(`/admin/upload?category=${category}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('category', category);
+      
+      console.log('Uploading codes to:', `${API_BASE_URL}/admin/upload?category=${category}`);
+      const response: AxiosResponse<UploadResult> = await this.client.post(`/admin/upload?category=${category}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('Upload response received:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Upload failed:', error);
+      throw error;
+    }
   }
 
   // Price endpoints
   async getPrices(): Promise<ProxyPriceConfig[]> {
     try {
+      console.log('Fetching prices from:', `${API_BASE_URL}/admin/prices`);
       const response: AxiosResponse<ProxyPriceConfig[]> = await this.client.get('/admin/prices');
-      console.log('Prices fetched successfully:', response.data);
+      console.log('Prices data received:', response.data);
       return response.data;
     } catch (error) {
       console.error('Failed to fetch prices:', error);
-      // Return default prices if endpoint fails
+      // Return default prices if API fails
       return [
-        { id: 1, category: 'FIFTY', price: 50.00 },
-        { id: 2, category: 'HUNDRED', price: 100.00 }
+        { id: 1, category: 'FIFTY', price: 50 },
+        { id: 2, category: 'HUNDRED', price: 100 }
       ];
     }
   }
 
   async updatePrice(category: 'FIFTY' | 'HUNDRED', newPrice: number): Promise<ProxyPriceConfig> {
-    const response: AxiosResponse<ProxyPriceConfig> = await this.client.put(`/admin/price?category=${category}&newPrice=${newPrice}`);
-    return response.data;
+    try {
+      console.log('Updating price for', category, 'to', newPrice);
+      const response: AxiosResponse<ProxyPriceConfig> = await this.client.put(`/admin/price?category=${category}&newPrice=${newPrice}`);
+      console.log('Price update response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Price update failed:', error);
+      throw error;
+    }
   }
 }
 

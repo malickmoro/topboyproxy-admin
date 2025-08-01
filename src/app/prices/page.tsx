@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { DollarSign, Edit, Save, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { DollarSign, Edit, Save, X, CheckCircle, AlertCircle, Globe } from 'lucide-react';
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { apiClient } from '@/lib/api';
@@ -126,31 +126,31 @@ export default function PricesPage() {
         <div className="space-y-6">
           {/* Header */}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Update Prices</h1>
-            <p className="text-gray-600">Manage pricing for different proxy categories</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Update Prices</h1>
+            <p className="text-gray-600 dark:text-gray-300">Manage pricing for different proxy categories</p>
           </div>
 
           {/* Success Message */}
           {successMessage && (
-            <div className="bg-green-50 border border-green-200 rounded-md p-4">
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-4">
               <div className="flex items-center">
                 <CheckCircle className="h-5 w-5 text-green-400" />
-                <p className="ml-2 text-sm text-green-800">{successMessage}</p>
+                <p className="ml-2 text-sm text-green-800 dark:text-green-300">{successMessage}</p>
               </div>
             </div>
           )}
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-4">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <AlertCircle className="h-5 w-5 text-red-400" />
-                  <p className="ml-2 text-sm text-red-600">{error}</p>
+                  <p className="ml-2 text-sm text-red-600 dark:text-red-400">{error}</p>
                 </div>
                 <button
                   onClick={fetchCategoriesAndPrices}
-                  className="text-sm text-red-600 hover:text-red-800 underline"
+                  className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 underline"
                 >
                   Retry
                 </button>
@@ -160,25 +160,25 @@ export default function PricesPage() {
 
           {/* Prices Table */}
           <div className="card">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">Category Prices</h3>
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Category Prices</h3>
             </div>
             <div className="overflow-x-auto">
               {loading ? (
                 <div className="p-6 text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-                  <p className="mt-2 text-gray-600">Loading prices...</p>
+                  <p className="mt-2 text-gray-600 dark:text-gray-300">Loading prices...</p>
                 </div>
               ) : categories.length === 0 ? (
                 <div className="p-6 text-center">
                   <div className="flex items-center justify-center mb-4">
-                    <DollarSign className="h-12 w-12 text-gray-400" />
+                    <DollarSign className="h-12 w-12 text-gray-400 dark:text-gray-500" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Categories Available</h3>
-                  <p className="text-gray-600 mb-4">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Categories Available</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     No categories found. This might be because:
                   </p>
-                  <ul className="text-sm text-gray-600 mb-4 text-left max-w-md mx-auto">
+                  <ul className="text-sm text-gray-600 dark:text-gray-300 mb-4 text-left max-w-md mx-auto">
                     <li>• No categories have been configured yet</li>
                     <li>• The backend database is empty</li>
                     <li>• There's a connection issue</li>
@@ -191,41 +191,41 @@ export default function PricesPage() {
                   </button>
                 </div>
               ) : (
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-800">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Category
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Current Price
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {categories.map((category) => {
                       const priceInfo = prices.find(p => p.category === category);
                       const currentPrice = priceInfo?.price || 0;
                       
                       return (
-                        <tr key={category} className="hover:bg-gray-50">
+                        <tr key={category} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className={`p-2 rounded-lg ${
                                 category === 'FIFTY' 
-                                  ? 'bg-green-100' 
-                                  : 'bg-blue-100'
+                                  ? 'bg-green-100 dark:bg-green-900/30' 
+                                  : 'bg-blue-100 dark:bg-blue-900/30'
                               }`}>
-                                <DollarSign className={`h-5 w-5 ${
+                                <Globe className={`h-5 w-5 ${
                                   category === 'FIFTY' 
-                                    ? 'text-green-600' 
-                                    : 'text-blue-600'
+                                    ? 'text-green-600 dark:text-green-400' 
+                                    : 'text-blue-600 dark:text-blue-400'
                                 }`} />
                               </div>
-                              <span className="ml-3 text-sm font-medium text-gray-900">
+                              <span className="ml-3 text-sm font-medium text-gray-900 dark:text-white">
                                 {backendToDisplay(category as 'FIFTY' | 'HUNDRED')}
                               </span>
                             </div>
@@ -238,14 +238,14 @@ export default function PricesPage() {
                                   value={editValue}
                                   onChange={(e) => setEditValue(e.target.value)}
                                   onKeyDown={(e) => handleKeyPress(e, category)}
-                                  className="w-24 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                  className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                   min="0"
                                   autoFocus
                                 />
-                                <span className="text-sm text-gray-500">GHS</span>
+                                <span className="text-sm text-gray-500 dark:text-gray-400">GHS</span>
                               </div>
                             ) : (
-                              <div className="text-sm text-gray-900">
+                              <div className="text-sm text-gray-900 dark:text-gray-100">
                                 {currentPrice} GHS
                               </div>
                             )}
@@ -256,7 +256,7 @@ export default function PricesPage() {
                                 <button
                                   onClick={() => savePrice(category)}
                                   disabled={updating}
-                                  className="text-green-600 hover:text-green-900 p-1"
+                                  className="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 p-1"
                                   title="Save"
                                 >
                                   {updating ? (
@@ -268,7 +268,7 @@ export default function PricesPage() {
                                 <button
                                   onClick={cancelEditing}
                                   disabled={updating}
-                                  className="text-gray-600 hover:text-gray-900 p-1"
+                                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 p-1"
                                   title="Cancel"
                                 >
                                   <X className="h-4 w-4" />
@@ -277,7 +277,7 @@ export default function PricesPage() {
                             ) : (
                               <button
                                 onClick={() => startEditing(category)}
-                                className="text-primary-600 hover:text-primary-900 p-1"
+                                className="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300 p-1"
                                 title="Edit price"
                               >
                                 <Edit className="h-4 w-4" />
@@ -295,22 +295,22 @@ export default function PricesPage() {
 
           {/* Instructions */}
           <div className="card p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Price Management</h3>
-            <div className="space-y-3 text-sm text-gray-600">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Price Management</h3>
+            <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
               <div className="flex items-start">
-                <div className="w-2 h-2 bg-primary-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <div className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                 <p>Click the edit icon to modify prices for each category</p>
               </div>
               <div className="flex items-start">
-                <div className="w-2 h-2 bg-primary-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <div className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                 <p>Press Enter to save or Escape to cancel editing</p>
               </div>
               <div className="flex items-start">
-                <div className="w-2 h-2 bg-primary-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <div className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                 <p>Prices are updated immediately and will affect new sales</p>
               </div>
               <div className="flex items-start">
-                <div className="w-2 h-2 bg-primary-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <div className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                 <p>All prices are in GHS (Ghanaian Cedi)</p>
               </div>
             </div>
