@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Globe, Eye, EyeOff, Download, Search, AlertCircle } from 'lucide-react';
+import { Globe, Eye, EyeOff, Download, Search, AlertCircle, Trash2 } from 'lucide-react';
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import CustomDropdown from '@/components/CustomDropdown';
@@ -15,6 +15,12 @@ export default function CodesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCodes, setShowCodes] = useState(false);
+  const [deletingCodeId, setDeletingCodeId] = useState<number | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; codeId: number | null; codeValue: string }>({
+    show: false,
+    codeId: null,
+    codeValue: ''
+  });
   const [filters, setFilters] = useState({
     search: '',
     category: '',
@@ -95,6 +101,38 @@ export default function CodesPage() {
     a.download = `codes-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
+  };
+
+  const handleDeleteClick = (codeId: number, codeValue: string) => {
+    setDeleteConfirm({
+      show: true,
+      codeId,
+      codeValue
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm.codeId) return;
+
+    try {
+      setDeletingCodeId(deleteConfirm.codeId);
+      await apiClient.deleteCode(deleteConfirm.codeId);
+      
+      // Remove the deleted code from the local state
+      setCodes(prevCodes => prevCodes.filter(code => code.id !== deleteConfirm.codeId));
+      
+      // Close the confirmation dialog
+      setDeleteConfirm({ show: false, codeId: null, codeValue: '' });
+    } catch (err: any) {
+      console.error('Error deleting code:', err);
+      setError('Failed to delete code: ' + (err.response?.data?.message || err.message || 'Unknown error'));
+    } finally {
+      setDeletingCodeId(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirm({ show: false, codeId: null, codeValue: '' });
   };
 
   const filteredCodes = codes.filter(code => {
@@ -370,6 +408,9 @@ export default function CodesPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Sold At
                       </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -407,6 +448,20 @@ export default function CodesPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                           {code.usedAt ? new Date(code.usedAt).toLocaleDateString() : '-'}
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                          <button
+                            onClick={() => handleDeleteClick(code.id, code.code)}
+                            disabled={deletingCodeId === code.id}
+                            className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            title="Delete code"
+                          >
+                            {deletingCodeId === code.id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -435,8 +490,63 @@ export default function CodesPage() {
                 <div className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                 <p>Proxy codes are automatically marked as "Used" when customers purchase them</p>
               </div>
+              <div className="flex items-start">
+                <div className="w-2 h-2 bg-red-600 dark:bg-red-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <p>Use the delete button to remove incorrect or invalid proxy codes from the system</p>
+              </div>
             </div>
           </div>
+
+          {/* Delete Confirmation Dialog */}
+          {deleteConfirm.show && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+                <div className="flex items-center mb-4">
+                  <div className="flex-shrink-0">
+                    <Trash2 className="h-6 w-6 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                      Delete Proxy Code
+                    </h3>
+                  </div>
+                </div>
+                <div className="mb-6">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                    Are you sure you want to delete this proxy code? This action cannot be undone.
+                  </p>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-3">
+                    <p className="text-sm font-mono text-gray-900 dark:text-white">
+                      {deleteConfirm.codeValue}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={handleDeleteCancel}
+                    disabled={deletingCodeId !== null}
+                    className="btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteConfirm}
+                    disabled={deletingCodeId !== null}
+                    className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-md transition-colors disabled:cursor-not-allowed"
+                  >
+                    {deletingCodeId !== null ? (
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Deleting...
+                      </div>
+                    ) : (
+                      'Delete'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </Layout>
     </ProtectedRoute>

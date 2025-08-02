@@ -189,6 +189,19 @@ class ApiClient {
       throw error;
     }
   }
+
+  // Delete code endpoint
+  async deleteCode(codeId: number): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log('Deleting code with ID:', codeId);
+      const response: AxiosResponse<{ success: boolean; message: string }> = await this.client.delete(`/admin/codes/${codeId}`);
+      console.log('Delete response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Delete code failed:', error);
+      throw error;
+    }
+  }
 }
 
 export const apiClient = new ApiClient(); 
