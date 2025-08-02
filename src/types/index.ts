@@ -19,6 +19,7 @@ export interface Sale {
   phoneNumber: string;
   proxyCode: string;
   category: 'FIFTY' | 'HUNDRED' | 'TWO_HUNDRED' | 'THREE_HUNDRED' | 'FOUR_HUNDRED' | 'SIX_HUNDRED' | 'EIGHT_HUNDRED' | 'THOUSAND';
+  amount?: number;
 }
 
 export interface ProxyPriceConfig {

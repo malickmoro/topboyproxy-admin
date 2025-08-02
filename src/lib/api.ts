@@ -12,7 +12,7 @@ export interface UploadedCode {
 }
 
 // Get API URL from environment variables
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://topboyproxy-backend-d7f79039f73a.herokuapp.com';
 
 class ApiClient {
   private client;
@@ -82,23 +82,27 @@ class ApiClient {
   }
 
   // Sales endpoints
-  async getSales(filters?: { startDate?: string; endDate?: string; category?: string }): Promise<Sale[]> {
+  async getSales(filters?: { startDate?: string; endDate?: string; category?: string }): Promise<{ sales: Sale[]; statistics?: any }> {
     try {
-      console.log('Fetching sales with filters:', filters);
+      console.log('🔍 Frontend: Fetching sales with filters:', filters);
       const params = new URLSearchParams();
       if (filters?.startDate) params.append('startDate', filters.startDate);
       if (filters?.endDate) params.append('endDate', filters.endDate);
       if (filters?.category) params.append('category', filters.category);
       
-      const response: AxiosResponse<Sale[]> = await this.client.get(`/admin/sales?${params.toString()}`);
-      console.log('Sales data received:', response.data);
+      const url = `/admin/sales?${params.toString()}`;
+      console.log('🔍 Frontend: Making API call to:', url);
+      
+      const response: AxiosResponse<{ sales: Sale[]; statistics?: any }> = await this.client.get(url);
+      console.log('🔍 Frontend: Sales data received from backend:', response.data);
+      console.log('🔍 Frontend: Number of sales returned:', response.data.sales?.length || 0);
+      
       return response.data;
-    } catch (error: any) {
-      console.error('Failed to fetch sales:', error);
-      // Return empty array if endpoint doesn't exist (not implemented in backend)
+    } catch (error: any) { // Fixed error type
+      console.error('❌ Frontend: Failed to fetch sales:', error);
       if (error.response?.status === 404) {
-        console.warn('Sales endpoint not implemented yet. Please add /admin/sales endpoint to your backend.');
-        return [];
+        console.warn('⚠️ Frontend: Sales endpoint not implemented yet. Please add /admin/sales endpoint to your backend.');
+        return { sales: [] };
       }
       throw error;
     }

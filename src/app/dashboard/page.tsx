@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BarChart3, Download, Filter, AlertCircle } from 'lucide-react';
+import { BarChart3, Download, Filter, AlertCircle, Calendar, TrendingUp, DollarSign } from 'lucide-react';
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import CustomDropdown from '@/components/CustomDropdown';
@@ -9,11 +9,29 @@ import { apiClient } from '@/lib/api';
 import { Sale } from '@/types';
 import { backendToDisplay } from '@/lib/categoryUtils';
 
+type SalesPeriod = 'daily' | 'monthly' | 'total';
+
+interface SalesStatistics {
+  total: number;
+  daily: number;
+  monthly: number;
+  revenue: {
+    total: number;
+    daily: number;
+    monthly: number;
+  };
+  byCategory: {
+    [key: string]: number;
+  };
+}
+
 export default function DashboardPage() {
   const [sales, setSales] = useState<Sale[]>([]);
+  const [statistics, setStatistics] = useState<SalesStatistics | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activePeriod, setActivePeriod] = useState<SalesPeriod>('total');
   const [filters, setFilters] = useState({
     startDate: '',
     endDate: '',
@@ -43,14 +61,15 @@ export default function DashboardPage() {
       setError('');
       
       // Pass filters to the API
-      const data = await apiClient.getSales({
+      const response = await apiClient.getSales({
         startDate: filters.startDate || undefined,
         endDate: filters.endDate || undefined,
         category: filters.category || undefined
       });
       
-      console.log('Sales data received:', data);
-      setSales(data);
+      console.log('Sales response received:', response);
+      setSales(response.sales || []);
+      setStatistics(response.statistics || null);
     } catch (err: any) {
       console.error('Error fetching sales:', err);
       setError('Failed to fetch sales data');
@@ -77,8 +96,8 @@ export default function DashboardPage() {
     }
     
     const csvContent = [
-      'Date,Phone Number,Proxy Code,Category',
-      ...sales.map(sale => `${sale.date},${sale.phoneNumber},${sale.proxyCode},${backendToDisplay(sale.category)}`)
+      'Date,Phone Number,Proxy Code,Category,Amount',
+      ...sales.map(sale => `${sale.date},${sale.phoneNumber},${sale.proxyCode},${backendToDisplay(sale.category)},${sale.amount || 0}`)
     ].join('\n');
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -90,7 +109,38 @@ export default function DashboardPage() {
     window.URL.revokeObjectURL(url);
   };
 
-  console.log('Dashboard render - sales:', sales, 'loading:', loading, 'error:', error);
+  // Get statistics based on active period
+  const getStatsForPeriod = () => {
+    if (!statistics) {
+      return {
+        total: 0,
+        fifty: 0,
+        hundred: 0,
+        other: 0,
+        revenue: 0
+      };
+    }
+
+    const periodStats = {
+      total: activePeriod === 'daily' ? statistics.daily : 
+             activePeriod === 'monthly' ? statistics.monthly : 
+             statistics.total,
+      fifty: statistics.byCategory?.FIFTY || 0,
+      hundred: statistics.byCategory?.HUNDRED || 0,
+      other: Object.entries(statistics.byCategory || {})
+        .filter(([key]) => key !== 'FIFTY' && key !== 'HUNDRED')
+        .reduce((sum, [, count]) => sum + count, 0),
+      revenue: activePeriod === 'daily' ? statistics.revenue?.daily || 0 :
+               activePeriod === 'monthly' ? statistics.revenue?.monthly || 0 :
+               statistics.revenue?.total || 0
+    };
+
+    return periodStats;
+  };
+
+  const stats = getStatsForPeriod();
+
+  console.log('Dashboard render - sales:', sales, 'statistics:', statistics, 'loading:', loading, 'error:', error);
 
   return (
     <ProtectedRoute>
@@ -112,16 +162,57 @@ export default function DashboardPage() {
             </button>
           </div>
 
+          {/* Sales Period Tabs */}
+          <div className="card p-4">
+            <div className="flex space-x-1">
+              <button
+                onClick={() => setActivePeriod('total')}
+                className={`flex-1 flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  activePeriod === 'total'
+                    ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                <DollarSign className="h-4 w-4 mr-2" />
+                Total Sales
+              </button>
+              <button
+                onClick={() => setActivePeriod('monthly')}
+                className={`flex-1 flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  activePeriod === 'monthly'
+                    ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Monthly Sales
+              </button>
+              <button
+                onClick={() => setActivePeriod('daily')}
+                className={`flex-1 flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  activePeriod === 'daily'
+                    ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Daily Sales
+              </button>
+            </div>
+          </div>
+
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             <div className="card p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
                   <BarChart3 className="h-6 w-6 text-primary-600 dark:text-primary-400" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Sales</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{sales.length}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                    {activePeriod === 'daily' ? 'Today' : activePeriod === 'monthly' ? 'This Month' : 'Total'} Sales
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
                 </div>
               </div>
             </div>
@@ -132,9 +223,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300">50 Category</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {sales.filter(s => s.category === 'FIFTY').length}
-                  </p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.fifty}</p>
                 </div>
               </div>
             </div>
@@ -145,9 +234,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300">100 Category</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {sales.filter(s => s.category === 'HUNDRED').length}
-                  </p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.hundred}</p>
                 </div>
               </div>
             </div>
@@ -158,9 +245,18 @@ export default function DashboardPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Other Categories</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {sales.filter(s => s.category !== 'FIFTY' && s.category !== 'HUNDRED').length}
-                  </p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.other}</p>
+                </div>
+              </div>
+            </div>
+            <div className="card p-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                  <DollarSign className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Revenue</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">₵{stats.revenue}</p>
                 </div>
               </div>
             </div>
