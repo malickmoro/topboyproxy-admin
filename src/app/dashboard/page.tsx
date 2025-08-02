@@ -41,7 +41,14 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       setError('');
-      const data = await apiClient.getSales();
+      
+      // Pass filters to the API
+      const data = await apiClient.getSales({
+        startDate: filters.startDate || undefined,
+        endDate: filters.endDate || undefined,
+        category: filters.category || undefined
+      });
+      
       console.log('Sales data received:', data);
       setSales(data);
     } catch (err: any) {
@@ -106,7 +113,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="card p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
@@ -140,6 +147,19 @@ export default function DashboardPage() {
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300">100 Category</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {sales.filter(s => s.category === 'HUNDRED').length}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="card p-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                  <BarChart3 className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Other Categories</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {sales.filter(s => s.category !== 'FIFTY' && s.category !== 'HUNDRED').length}
                   </p>
                 </div>
               </div>
@@ -184,7 +204,7 @@ export default function DashboardPage() {
                     { value: '', label: 'All Categories' },
                     ...categories.map((cat) => ({
                       value: cat,
-                      label: backendToDisplay(cat as 'FIFTY' | 'HUNDRED')
+                      label: backendToDisplay(cat as any)
                     }))
                   ]}
                   value={filters.category}
@@ -281,8 +301,20 @@ export default function DashboardPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             sale.category === 'FIFTY' 
-                              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' 
-                              : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
+                              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                              : sale.category === 'HUNDRED'
+                              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
+                              : sale.category === 'TWO_HUNDRED'
+                              ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300'
+                              : sale.category === 'THREE_HUNDRED'
+                              ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
+                              : sale.category === 'FOUR_HUNDRED'
+                              ? 'bg-pink-100 dark:bg-pink-900/30 text-pink-800 dark:text-pink-300'
+                              : sale.category === 'SIX_HUNDRED'
+                              ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300'
+                              : sale.category === 'EIGHT_HUNDRED'
+                              ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300'
+                              : 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300'
                           }`}>
                             {backendToDisplay(sale.category)}
                           </span>
