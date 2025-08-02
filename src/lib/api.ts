@@ -5,7 +5,7 @@ import { LoginRequest, LoginResponse, Sale, ProxyPriceConfig, UploadResult } fro
 export interface UploadedCode {
   id: number;
   code: string;
-  category: 'FIFTY' | 'HUNDRED';
+  category: 'FIFTY' | 'HUNDRED' | 'TWO_HUNDRED' | 'THREE_HUNDRED' | 'FOUR_HUNDRED' | 'SIX_HUNDRED' | 'EIGHT_HUNDRED' | 'THOUSAND';
   uploadedAt: string | null;
   usedAt: string | null;
   used: boolean;
@@ -130,12 +130,12 @@ class ApiClient {
     } catch (error) {
       console.error('Failed to fetch categories:', error);
       // Return default categories if endpoint fails
-      return ['FIFTY', 'HUNDRED'];
+      return ['FIFTY', 'HUNDRED', 'TWO_HUNDRED', 'THREE_HUNDRED', 'FOUR_HUNDRED', 'SIX_HUNDRED', 'EIGHT_HUNDRED', 'THOUSAND'];
     }
   }
 
   // Upload endpoints
-  async uploadCodes(file: File, category: 'FIFTY' | 'HUNDRED'): Promise<UploadResult> {
+  async uploadCodes(file: File, category: 'FIFTY' | 'HUNDRED' | 'TWO_HUNDRED' | 'THREE_HUNDRED' | 'FOUR_HUNDRED' | 'SIX_HUNDRED' | 'EIGHT_HUNDRED' | 'THOUSAND'): Promise<UploadResult> {
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -167,12 +167,18 @@ class ApiClient {
       // Return default prices if API fails
       return [
         { id: 1, category: 'FIFTY', price: 50 },
-        { id: 2, category: 'HUNDRED', price: 100 }
+        { id: 2, category: 'HUNDRED', price: 100 },
+        { id: 3, category: 'TWO_HUNDRED', price: 200 },
+        { id: 4, category: 'THREE_HUNDRED', price: 300 },
+        { id: 5, category: 'FOUR_HUNDRED', price: 400 },
+        { id: 6, category: 'SIX_HUNDRED', price: 600 },
+        { id: 7, category: 'EIGHT_HUNDRED', price: 800 },
+        { id: 8, category: 'THOUSAND', price: 1000 }
       ];
     }
   }
 
-  async updatePrice(category: 'FIFTY' | 'HUNDRED', newPrice: number): Promise<ProxyPriceConfig> {
+  async updatePrice(category: 'FIFTY' | 'HUNDRED' | 'TWO_HUNDRED' | 'THREE_HUNDRED' | 'FOUR_HUNDRED' | 'SIX_HUNDRED' | 'EIGHT_HUNDRED' | 'THOUSAND', newPrice: number): Promise<ProxyPriceConfig> {
     try {
       console.log('Updating price for', category, 'to', newPrice);
       const response: AxiosResponse<ProxyPriceConfig> = await this.client.put(`/admin/price?category=${category}&newPrice=${newPrice}`);

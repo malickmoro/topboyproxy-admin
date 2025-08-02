@@ -18,12 +18,12 @@ export interface Sale {
   date: string;
   phoneNumber: string;
   proxyCode: string;
-  category: 'FIFTY' | 'HUNDRED';
+  category: 'FIFTY' | 'HUNDRED' | 'TWO_HUNDRED' | 'THREE_HUNDRED' | 'FOUR_HUNDRED' | 'SIX_HUNDRED' | 'EIGHT_HUNDRED' | 'THOUSAND';
 }
 
 export interface ProxyPriceConfig {
   id?: number;
-  category: 'FIFTY' | 'HUNDRED';
+  category: 'FIFTY' | 'HUNDRED' | 'TWO_HUNDRED' | 'THREE_HUNDRED' | 'FOUR_HUNDRED' | 'SIX_HUNDRED' | 'EIGHT_HUNDRED' | 'THOUSAND';
   price: number;
 }
 
