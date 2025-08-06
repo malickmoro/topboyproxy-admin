@@ -5,6 +5,7 @@ import { BarChart3, Download, Filter, AlertCircle, Calendar, TrendingUp, DollarS
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import CustomDropdown from '@/components/CustomDropdown';
+import SalesChart, { ChartPeriod, SalesDataPoint } from '@/components/SalesChart';
 import { apiClient } from '@/lib/api';
 import { Sale } from '@/types';
 import { backendToDisplay } from '@/lib/categoryUtils';
@@ -32,6 +33,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activePeriod, setActivePeriod] = useState<SalesPeriod>('total');
+  const [chartPeriod, setChartPeriod] = useState<ChartPeriod>('daily');
+  const [chartData, setChartData] = useState<SalesDataPoint[]>([]);
+  const [chartLoading, setChartLoading] = useState(false);
   const [filters, setFilters] = useState({
     startDate: '',
     endDate: '',
@@ -41,7 +45,8 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchCategories();
     fetchSales();
-  }, [filters]);
+    fetchChartData();
+  }, [filters, chartPeriod]);
 
   const fetchCategories = async () => {
     try {
@@ -75,6 +80,26 @@ export default function DashboardPage() {
       setError('Failed to fetch sales data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchChartData = async () => {
+    try {
+      setChartLoading(true);
+      
+      const response = await apiClient.getAggregatedSales(chartPeriod, {
+        startDate: filters.startDate || undefined,
+        endDate: filters.endDate || undefined,
+        category: filters.category || undefined
+      });
+      
+      console.log('Chart data received:', response);
+      setChartData(response.data || []);
+    } catch (err: any) {
+      console.error('Error fetching chart data:', err);
+      setChartData([]);
+    } finally {
+      setChartLoading(false);
     }
   };
 
@@ -318,6 +343,14 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+
+          {/* Sales Chart */}
+          <SalesChart
+            data={chartData}
+            period={chartPeriod}
+            onPeriodChange={setChartPeriod}
+            loading={chartLoading}
+          />
 
           {/* Sales Table */}
           <div className="card">

@@ -108,6 +108,68 @@ class ApiClient {
     }
   }
 
+  // Aggregated sales data for charts
+  async getAggregatedSales(period: 'daily' | 'weekly' | 'monthly', filters?: { startDate?: string; endDate?: string; category?: string }): Promise<{ data: Array<{ label: string; sales: number; revenue: number }> }> {
+    try {
+      console.log('🔍 Frontend: Fetching aggregated sales for period:', period);
+      const params = new URLSearchParams();
+      params.append('period', period);
+      if (filters?.startDate) params.append('startDate', filters.startDate);
+      if (filters?.endDate) params.append('endDate', filters.endDate);
+      if (filters?.category) params.append('category', filters.category);
+      
+      const url = `/admin/sales/aggregated?${params.toString()}`;
+      console.log('🔍 Frontend: Making API call to:', url);
+      
+      const response: AxiosResponse<{ data: Array<{ label: string; sales: number; revenue: number }> }> = await this.client.get(url);
+      console.log('🔍 Frontend: Aggregated sales data received:', response.data);
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Frontend: Failed to fetch aggregated sales:', error);
+      if (error.response?.status === 404) {
+        console.warn('⚠️ Frontend: Aggregated sales endpoint not implemented yet. Please add /admin/sales/aggregated endpoint to your backend.');
+        // Return mock data for development
+        return { data: this.getMockAggregatedData(period) };
+      }
+      throw error;
+    }
+  }
+
+  // Mock data for development when backend endpoint is not available
+  private getMockAggregatedData(period: 'daily' | 'weekly' | 'monthly'): Array<{ label: string; sales: number; revenue: number }> {
+    switch (period) {
+      case 'daily':
+        return [
+          { label: 'Sunday', sales: 12, revenue: 1200 },
+          { label: 'Monday', sales: 18, revenue: 1800 },
+          { label: 'Tuesday', sales: 15, revenue: 1500 },
+          { label: 'Wednesday', sales: 22, revenue: 2200 },
+          { label: 'Thursday', sales: 19, revenue: 1900 },
+          { label: 'Friday', sales: 25, revenue: 2500 },
+          { label: 'Saturday', sales: 30, revenue: 3000 },
+        ];
+      case 'weekly':
+        return [
+          { label: 'Week 1', sales: 85, revenue: 8500 },
+          { label: 'Week 2', sales: 92, revenue: 9200 },
+          { label: 'Week 3', sales: 78, revenue: 7800 },
+          { label: 'Week 4', sales: 105, revenue: 10500 },
+        ];
+      case 'monthly':
+        return [
+          { label: 'January', sales: 320, revenue: 32000 },
+          { label: 'February', sales: 285, revenue: 28500 },
+          { label: 'March', sales: 310, revenue: 31000 },
+          { label: 'April', sales: 295, revenue: 29500 },
+          { label: 'May', sales: 340, revenue: 34000 },
+          { label: 'June', sales: 365, revenue: 36500 },
+        ];
+      default:
+        return [];
+    }
+  }
+
   // Codes endpoints
   async getUploadedCodes(filters?: { category?: string; isUsed?: boolean }): Promise<UploadedCode[]> {
     try {
