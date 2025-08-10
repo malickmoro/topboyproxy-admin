@@ -81,7 +81,7 @@ export default function SalesChart({ data, period, onPeriodChange, loading = fal
           </p>
         </div>
         <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-          {(['daily', 'weekly', 'monthly'] as ChartPeriod[]).map((p) => (
+          {(['daily', 'monthly'] as ChartPeriod[]).map((p) => (
             <button
               key={p}
               onClick={() => onPeriodChange(p)}
