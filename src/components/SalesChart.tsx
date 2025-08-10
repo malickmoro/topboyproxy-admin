@@ -14,7 +14,7 @@ import {
   Line
 } from 'recharts';
 
-export type ChartPeriod = 'daily' | 'weekly' | 'monthly';
+export type ChartPeriod = 'daily' | 'monthly';
 
 export interface SalesDataPoint {
   label: string;
@@ -52,8 +52,6 @@ export default function SalesChart({ data, period, onPeriodChange, loading = fal
     switch (period) {
       case 'daily':
         return 'Daily';
-      case 'weekly':
-        return 'Weekly';
       case 'monthly':
         return 'Monthly';
       default:
